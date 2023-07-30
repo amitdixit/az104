@@ -1,0 +1,3 @@
+az network vnet create --name "app-network" --resource-group "app-grp" --subnet-name "SubnetA" --address-prefixes 10.0.0.0/16
+
+az network vnet show -g "app-grp" -n "app-network"

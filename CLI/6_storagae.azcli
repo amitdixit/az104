@@ -1,0 +1,1 @@
+az storage account create -n "uniquestoragename" -g "app-grp" --kind "StorageV2" --sku "Standard_LRS"
