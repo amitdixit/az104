@@ -1,0 +1,49 @@
+step 1 : Update the packages on the VM 
+sudo apt update && sudo apt upgrade -y
+Step 2 : Update the timezone 
+sudo timedatectl set-timezone Asia/Kolkata
+2. sudo parted /dev/sdc --script mklabel gpt mkpart xfspart xfs 0% 100% .(sda is our drive name from the step 2.1)
+		   sudo mkfs.xfs /dev/sdc
+		   sudo partprobe /dev/sdc1	
+		   (restart is a good option)
+		3. lsblk
+
+
+sudo fdisk -l
+
+Format the new disk:
+sudo fdisk /dev/sdc
+
+
+sudo mkfs -t ext4/xfs /dev/sdc1
+
+
+sudo umount /mnt/sdn
+
+
+sudo -i blkid | grep sdc1
+sudo vi /etc/fstab
+
+step 2 : Mount the disk . (Refer https://learn.microsoft.com/en-us/azure/virtual-machines/linux/attach-disk-portal?tabs=ubuntu)
+		1. Check Disk
+			lsblk -o NAME,HCTL,SIZE,MOUNTPOINT | grep -i "sd" or sudo fdisk -l
+		2. Format disk
+			sudo fdisk /dev/sda
+		3. Create a File System
+			sudo mkfs -t xfs /dev/sda1	
+		4. sudo mkdir /datadrive
+		5. sudo mount /dev/sda1 /datadrive
+		6. sudo -i blkid | grep sda1 or sudo blkid and get the UUID for your drive
+
+		7. sudo vi /etc/fstab and make the entry in this file so that the mouting persists after reboot 
+			UUID=YOUR_UUID   /datadrive   xfs   defaults,nofail   1   2
+		8. sudo mount -a
+
+
+sudo parted /dev/sda --script mklabel gpt mkpart xfspart xfs 0% 100%
+sudo mkfs.xfs /dev/sda
+sudo partprobe /dev/sda1
+
+
+
+key["///"]

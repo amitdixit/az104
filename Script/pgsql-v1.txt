@@ -1,0 +1,97 @@
+1. sudo mkdir /datadrive/
+2. sudo mkdir /datadrive/data/
+3. Install
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo apt-get update
+sudo apt-get -y install postgresql  postgresql-client
+3. Get Status
+	sudo systemctl status postgresql
+4. stop the postgresql
+	sudo systemctl stop postgresql
+5. Get the path of postgresql data directory navigate to
+	cd etc/postgresql/15/main/
+	cat postgresql.conf
+	note the path of property data_directory = '/var/lib/postgresql/15/main'
+6. copy all the contents from the current data_directory to new ie. /datadrive/data/
+	change the permission of /var/lib/postgresql/15/main to view all the contents
+	sudo cp -r * /datadrive/data
+7. change the data_directory to /datadrive/data/ in the config
+	sudo vi /etc/postgresql/15/main/postgresql.conf
+8. change the owernship to postgresql
+	sudo chown -R postgres:postgres /data/ (Present in /datadrive)
+	sudo chmod 750 -R data
+9. start the service
+	sudo chown -R postgres:postgres /datadrive/
+	sudo systemctl restart postgresql or sudo systemctl start postgresql
+10. Check the service logs
+	journalctl -xe
+	journalctl -u postgresql
+11. Connect to Postgresql.
+	sudo -u postgres psql
+	check few commands
+	SHOW data_directory;
+	\l
+	\l+
+	\db
+12. Change the master password.
+	ALTER USER postgres PASSWORD 'MyPgPassword@0';
+13. Enable public access.
+	stop postgresql : sudo systemctl stop postgresql
+	sudo vi /etc/postgresql/15/main/postgresql.conf
+		Find the commented line #listen_addresses = 'localhost'
+		uncomment it and add replace localhost with *
+	sudo vi /etc/postgresql/15/main/pg_hba.conf
+	find the line # IPv4 local connections:
+	replace below IP's
+	host    all             all             127.0.0.1/32            scram-sha-256
+	with
+	host    all             all             0.0.0.0/0            scram-sha-256
+14.Connect to the Instance with DBeaver
+	a. Try creating a database. appdb
+	b. create a demo table like
+		CREATE TABLE accounts (
+		user_id serial PRIMARY KEY,
+		username VARCHAR ( 50 ) UNIQUE NOT NULL,
+		password VARCHAR ( 50 ) NOT NULL,
+		email VARCHAR ( 255 ) UNIQUE NOT NULL,
+		created_on TIMESTAMP NOT NULL,
+		last_login TIMESTAMP 
+		);
+
+	insert into accounts (username, password, email, created_on,last_login)
+	select
+		left(md5(i::text), 10),
+		md5(random()::text),
+		concat(array_to_string(ARRAY(SELECT chr((97 + round(random() * i)) :: integer) FROM generate_series(1,15)), ''),'@myorg.com'),
+		now(),now()
+	from generate_series(100, 200) s(i)
+
+	SELECT * FROM public.accounts 
+16.Restart the server to check the mounting and data
+17. Create user 
+	create user devuser with encrypted password 'MyDevPgPassword@0';
+	grant all privileges on database appdb to devuser;
+
+	grant all privileges on database appdb to devuser;
+
+	grant all privileges on schema public to devuser;
+	grant all privileges on schema master to devuser;
+	
+	grant select, update on appdb to devuser;
+	
+	The possible privileges are:
+	SELECT
+	INSERT
+	UPDATE
+	DELETE
+	TRUNCATE
+	REFERENCES
+	TRIGGER
+	CREATE
+	CONNECT
+	TEMPORARY
+	EXECUTE
+	USAGE
+	SET
+	ALTER SYSTEM
